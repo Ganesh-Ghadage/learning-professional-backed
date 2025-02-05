@@ -504,7 +504,7 @@ const getWatchHistroy = asyncHandler(async (req, res) => {
             },
       ]);
         
-      console.log(watchHistory)
+      // console.log(watchHistory)
 
       if(!watchHistory.length){
             throw new ApiError(400, "Watch history not found")
