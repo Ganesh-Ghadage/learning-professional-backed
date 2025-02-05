@@ -330,7 +330,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
       const avatar = await uploadOnCloudinary(avatarLocalPath)
 
       // avatar url validation
-      if(!avatar.url){
+      if(!avatar?.url){
             throw new ApiError(400, "File upload failed to cloudinary, Avatar url is not present")
       }
 
@@ -362,8 +362,8 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
       const coverImage = await uploadOnCloudinary(coverLocalPath)
 
-      if(!coverImage.url){
-            throw new ApiError(400, "File upload failed to cloudinary, Avatar url is not present")
+      if(!coverImage?.url){
+            throw new ApiError(400, "File upload failed to cloudinary, Cover Image url is not present")
       }
 
       user.coverImage = coverImage.url
@@ -375,7 +375,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
       return res
             .status(200)
-            .json(new ApiResponce(200, updatedUser, "Avatar updated successfully"))
+            .json(new ApiResponce(200, updatedUser, "Cover Image updated successfully"))
 })
 
 const getUserChannelProfile = asyncHandler(async (req, res) => {
