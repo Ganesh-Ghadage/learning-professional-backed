@@ -7,7 +7,7 @@ import { mongoose } from 'mongoose'
 
 const getVideoComments = asyncHandler(async (req, res) => {
       const { videoId } = req.params;
-      const { page = 1, limit = 10 } = req.query;
+      let { page = 1, limit = 10 } = req.query;
 
       if(!videoId){
             throw new ApiError(400, "Video ID is rquired")
@@ -149,7 +149,7 @@ const deleteComment = asyncHandler(async (req, res) => {
 
       return res
             .status(200)
-            .json(ApiResponce(new ApiResponce(200, {}, "Comment deleted successfully")))
+            .json(new ApiResponce(200, {}, "Comment deleted successfully"))
 })
 
 export {
