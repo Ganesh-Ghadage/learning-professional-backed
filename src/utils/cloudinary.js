@@ -34,10 +34,11 @@ const uploadOnCloudinary = async (localFilePath) => {
       }
 }
 
-const deleteFromCloudinary = async (publicId) => {
+const deleteFromCloudinary = async (publicUrl) => {
       try {
-           const result = await cloudinary.uploader.destroy(publicId) 
-           logger.info(`File deleted from cloudinary, File src: ${result?.url} `)
+            const publicId = 'vidtube/' + publicUrl.split('/').pop().split('.').slice(0, -1).join('.')
+            const result = await cloudinary.uploader.destroy(publicId) 
+            logger.info(`File deleted from cloudinary, File src: ${result?.url} `)
       } catch (error) {
             logger.error("Error in file delete from cloudinary", error)
             return null
