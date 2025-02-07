@@ -103,10 +103,10 @@ const registerUser = asyncHandler(async (req, res) => {
                   console.log('User creation failed', error)
       
                   if(avatar){
-                        await deleteFromCloudinary(avatar.public_id)
+                        await deleteFromCloudinary(avatar.url)
                   }
                   if(coverImage){
-                        await deleteFromCloudinary(coverImage.public_id)
+                        await deleteFromCloudinary(coverImage.url)
                   }
 
                   throw new ApiError(500, 'Something went wrong, User is not registered and files were deleted from cloudinary', error)
@@ -323,8 +323,8 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
       // fetch user details based on _id from req.user object
       const user = await User.findById(req.user?._id).select("-password -refreshToken")
 
-      // extract the public_id from the exsiting avatr url stored in user collection
-      const publicId = 'vidtube/' + user.avatar.split('/').pop().split('.').slice(0, -1).join('.') 
+      // get the public url of avatar
+      const publicUrl = user.avatar
 
       // upload the new avatar image to cloudinary
       const avatar = await uploadOnCloudinary(avatarLocalPath)
@@ -338,9 +338,9 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
       user.avatar = avatar.url
       const updatedUser = await user.save({ validateBeforeSave: false })
 
-      // if we have public id delete it from cloudinary
-      if(publicId){
-            await deleteFromCloudinary(publicId)
+      // if we have avatar url delete it from cloudinary
+      if(publicUrl){
+            await deleteFromCloudinary(publicUrl)
       }
 
       return res
@@ -358,7 +358,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
       const user = await User.findById(req.user?._id).select("-password -refreshToken")
 
-      const publicId = 'vidtube/' + user.coverImage.split('/').pop().split('.').slice(0, -1).join('.')
+      const publicUrl = user.coverImage
 
       const coverImage = await uploadOnCloudinary(coverLocalPath)
 
@@ -369,8 +369,8 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
       user.coverImage = coverImage.url
       const updatedUser = await user.save({ validateBeforeSave: false })
 
-      if(publicId){
-            await deleteFromCloudinary(publicId)
+      if(publicUrl){
+            await deleteFromCloudinary(publicUrl)
       }
 
       return res
