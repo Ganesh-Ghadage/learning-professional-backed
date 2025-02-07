@@ -10,14 +10,72 @@ import mongoose from 'mongoose'
 import fs from 'fs'
 
 const getAllVideos = asyncHandler(async (req, res) => {
-      const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.params
-
-      if(query?.trim() === ""){
-            throw new ApiError(400, "Query must be avaliable to search Video")
+      let { page = 1, limit = 10, query, sortBy = "createdAt", sortType = "desc", userId } = req.query;
+  
+      // ✅ Ensure `page` and `limit` are numbers
+      page = parseInt(page);
+      limit = parseInt(limit);
+  
+      if (isNaN(page) || page < 1) page = 1;
+      if (isNaN(limit) || limit < 1) limit = 10;
+  
+      const matchStage = {};
+    
+      if (query) {
+            matchStage.$or = [
+                  { title: { $regex: query, $options: "i" } },
+                  { description: { $regex: query, $options: "i" } }
+            ];
       }
 
+      if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+            matchStage.owner = new mongoose.Types.ObjectId(userId);
+      }
 
-})
+      // ✅ Sorting options
+      const sortStage = {};
+      sortStage[sortBy] = sortType === "asc" ? 1 : -1;
+
+      // ✅ Aggregation Pipeline
+      const aggregationPipeline = [
+            { $match: matchStage },
+            {
+                  $lookup: {
+                        from: "users",
+                        localField: "owner",
+                        foreignField: "_id",
+                        as: "owner"
+                  }
+            },
+            {
+                  $addFields: {
+                        owner: { $arrayElemAt: ["$owner", 0] } // Get the first element of the array
+                  }
+            },
+            {
+                  $project: {
+                        title: 1,
+                        description: 1,
+                        videoFile: 1,
+                        owner: { _id: 1, userName: 1, avatar: 1 },
+                        thumbnail: 1,
+                        views: 1,
+                        createdAt: 1
+                  }
+            },
+            { $sort: sortStage }
+      ];
+
+      const options = { page, limit };
+      const videos = await Video.aggregatePaginate(Video.aggregate(aggregationPipeline), options);
+
+      logger.log("info", "Video fetched successfully")
+
+      return res
+          .status(200)
+          .json(new ApiResponce(200, videos, "Videos fetched successfully"));
+});
+  
 
 const publishVideo = asyncHandler(async (req, res) => {
       const { title, description } = req.body
