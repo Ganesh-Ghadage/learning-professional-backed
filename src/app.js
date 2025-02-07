@@ -5,12 +5,6 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser'
 import { errorHandler } from './middlewares/errors.middleware.js';
 
-// Router imports
-import healthcheckRouter from './routes/healthcheck.routes.js';
-import userRouter from './routes/users.routes.js'
-import commentRouter from './routes/comments.routes.js'
-import videoRouter from './routes/video.routes.js'
-
 const morganFormat = ":method :url :status :response-time ms";
 
 const app = express()
@@ -59,10 +53,18 @@ app.use(cookieParser())
 
 app.use(errorHandler)
 
+// Router imports
+import healthcheckRouter from './routes/healthcheck.routes.js';
+import userRouter from './routes/users.routes.js'
+import commentRouter from './routes/comments.routes.js'
+import videoRouter from './routes/video.routes.js'
+import tweetRouter from './routes/tweets.routes.js'
+
 // Routes
 app.use('/api/v1/healthcheck', healthcheckRouter)
 app.use('/api/v1/users', userRouter)
 app.use('/api/v1/comments', commentRouter)
 app.use('/api/v1/videos', videoRouter)
+app.use('/api/v1/tweets', tweetRouter)
 
 export { app }
