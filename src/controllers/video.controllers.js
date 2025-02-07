@@ -2,9 +2,12 @@ import { ApiError } from '../utils/ApiError.js'
 import { ApiResponce } from '../utils/ApiResponce.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { Video } from '../models/video.models.js'
+import { Comment } from '../models/comments.models.js'
+import { Like } from '../models/like.models.js' 
 import { deleteFromCloudinary, uploadOnCloudinary } from '../utils/cloudinary.js'
 import logger from '../utils/logger.js'
 import mongoose from 'mongoose'
+import fs from 'fs'
 
 const getAllVideos = asyncHandler(async (req, res) => {
       const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.params
@@ -23,12 +26,12 @@ const publishVideo = asyncHandler(async (req, res) => {
       const thumbnailLocalPath = req.files?.thumbnail[0]?.path
 
       try {
-            if(title.trim() === ""){
-                  throw new ApiError(400, "Title is required")
+            if (!title || title.trim() === "") {
+                  throw new ApiError(400, "Title is required");
             }
       
-            if(description.trim() === ""){
-                  throw new ApiError(400, "Description is required")
+            if (!description || description.trim() === "") {
+                  throw new ApiError(400, "Description is required");
             }
       
             if(!videoLocalPath){
@@ -50,6 +53,7 @@ const publishVideo = asyncHandler(async (req, res) => {
                   }
 
             } catch (error) {
+                  logger.error("Cloudinary video upload failed", error);
                   throw new ApiError(500, "Error while uploading file to cloudinary")
             }
 
@@ -84,17 +88,192 @@ const publishVideo = asyncHandler(async (req, res) => {
                         await deleteFromCloudinary(thumbnail.public_id)
                   }
 
+                  logger.error("Database video save failed", error);
                   throw new ApiError(500, "Something went wrong Video not published")
             }
 
       } catch (error) {
+            if(videoLocalPath){
+                  fs.unlinkSync(videoLocalPath)
+            }
+            if(thumbnailLocalPath){
+                  fs.unlinkSync(thumbnailLocalPath)
+            }
+
             logger.error("Video upload failed", error)
             throw new ApiError(500, error)
       }
 })
 
+const getVideoById = asyncHandler(async (req, res) => {
+      const { videoId } = req.params
+
+      if (!mongoose.Types.ObjectId.isValid(videoId)) {
+            throw new ApiError(400, "Invalid Video ID");
+      }
+
+      const video = await Video.findById(videoId).populate("owner", "username email avatar");
+
+      if(!video){
+            throw new ApiError(404, "Video not found")
+      }
+
+      logger.log("info", "Video fetched successfully")
+      return res
+            .status(200)
+            .json(new ApiResponce(200, video, "Video fetched successfully"))
+})
+
+const updateVideo = asyncHandler(async (req, res) => {
+      const { videoId } = req.params
+      const { title, description } = req.body
+      const thumbnailLocalPath = req.file?.thumbnail[0]?.path
+
+      try {
+            if(!mongoose.Types.ObjectId.isValid(videoId)){
+                  throw new ApiError(400, "Invalid Video ID");
+            }
+      
+            if (!title || title.trim() === "") {
+                  throw new ApiError(400, "Title is required");
+            }
+      
+            if (!description || description.trim() === "") {
+                  throw new ApiError(400, "Description is required");
+            }
+
+            let thumbnail;
+            
+            if(thumbnailLocalPath){
+                  try {
+                        thumbnail = await uploadOnCloudinary(thumbnailLocalPath)
+      
+                        if(!thumbnail){
+                              throw new ApiError(500, "Error while updating video to cloudinary")
+                        }
+      
+                  } catch (error) {
+                        logger.error("Error while updating video to cloudinary", error)
+                        throw new ApiError(500, "Error while updating video to cloudinary")
+                  }
+            }
+            
+            try {
+                  const updatedVideo = await Video.findByIdAndUpdate(videoId, 
+                        {
+                              $set: {
+                                    title,
+                                    description,
+                                    ...(thumbnail && {thumbnail: thumbnail?.url})
+                              }
+                        },
+                        {new: true}
+                  )
+
+                  if (!updatedVideo) {
+                        throw new ApiError(404, "Video not found");
+                  }
+
+                  logger.log("info", "Video updated successfully")
+                  return res
+                        .status(200)
+                        .json(new ApiResponce(200, updatedVideo, "Video updated successfully"))
+                  
+            } catch (error) {
+                  
+                  if(thumbnail){
+                        await deleteFromCloudinary(thumbnail.public_id)
+                  }
+
+                  logger.error("Error while updating video in database", error)
+                  throw new ApiError(500, "Error while updating video in database")
+            }
+
+
+      } catch (error) {
+            logger.error("Error while updating video", error)
+            throw new ApiError(500, error.message || "Error while updating video")
+      }
+})
+
+const deleteVideo = asyncHandler(async (req, res) => {
+      const { videoId } = req.params
+
+      try {
+            if(!mongoose.Types.ObjectId.isValid(videoId)){
+                  throw new ApiError(400, "Invalid Video ID");
+            }
+      
+            const video = await Video.findById(videoId)
+            if(!video){
+                  throw new ApiError(404, "Video not found")
+            }
+      
+            try {
+                  if (video.videoFile) {
+                        await deleteFromCloudinary(video.videoFile);
+                  }
+                  if (video.thumbnail) {
+                        await deleteFromCloudinary(video.thumbnail);
+                  }
+            } catch (error) {
+                  logger.error("Failed to delete video/thumbnail from Cloudinary", cloudinaryError);
+                  throw new ApiError(500, "Failed to delete video from Cloudinary");
+            }
+      
+            await Comment.deleteMany({
+                  videoId: video?._id
+            })
+      
+            await Like.deleteMany({
+                  video: video?._id
+            })
+      
+            await Video.findByIdAndDelete(videoId)
+      
+            logger.log('info', `video ${videoId} deleted successfully`)
+            return res
+                  .status(200)
+                  .json(new ApiResponce(200, {}, "Video deleted successfully"))
+
+      } catch (error) {
+            logger.error("Error while deleting video:", error);
+            throw new ApiError(500, "Error while deleting video");
+      }
+
+})
+
+const togglePublishStatus = asyncHandler(async (req, res) => {
+      const { videoId } = req.params
+
+      if (!mongoose.Types.ObjectId.isValid(videoId)) {
+            throw new ApiError(400, "Invalid Video ID");
+      }
+
+      const video = await Video.findById(videoId)
+
+      if(!video){
+            throw new ApiError(404, "Video not found")
+      }
+
+      if (video.owner.toString() !== req.user._id.toString()) {
+            throw new ApiError(403, "You are not authorized to update this video");
+      }
+
+      video.isPublished = !video?.isPublished
+      await video.save()
+
+      return res
+            .status(200)
+            .json(new ApiResponce(200, video, "Publish status toggled successfully"))
+
+})
 
 export {
       getAllVideos,
-      publishVideo
+      publishVideo,
+      getVideoById,
+      updateVideo,
+      deleteVideo,
+      togglePublishStatus
 }
