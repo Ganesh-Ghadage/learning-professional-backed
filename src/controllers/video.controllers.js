@@ -170,7 +170,7 @@ const getVideoById = asyncHandler(async (req, res) => {
             throw new ApiError(400, "Invalid Video ID");
       }
 
-      const video = await Video.findById(videoId).populate("owner", "username email avatar");
+      const video = await Video.findById(videoId).populate("owner", "_id userName email avatar");
 
       if(!video){
             throw new ApiError(404, "Video not found")
@@ -198,6 +198,16 @@ const updateVideo = asyncHandler(async (req, res) => {
       
             if (!description || description.trim() === "") {
                   throw new ApiError(400, "Description is required");
+            }
+
+            const video = await Video.findById(videoId)
+
+            if(!video){
+                  throw new ApiError(404, "Video not found")
+            }
+
+            if (video.owner.toString() !== req?.user?._id.toString()) {
+                  throw new ApiError(403, "You are not authorized to update this video");
             }
 
             let thumbnail;
@@ -263,8 +273,13 @@ const deleteVideo = asyncHandler(async (req, res) => {
             }
       
             const video = await Video.findById(videoId)
+
             if(!video){
                   throw new ApiError(404, "Video not found")
+            }
+
+            if (video.owner.toString() !== req?.user?._id.toString()) {
+                  throw new ApiError(403, "You are not authorized to delete this video");
             }
       
             try {
