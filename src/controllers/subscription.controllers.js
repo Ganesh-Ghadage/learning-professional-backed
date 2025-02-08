@@ -1,5 +1,5 @@
 import { ApiError } from '../utils/ApiError.js'
-import { ApiResponce } from '../utils/ApiResponce.js'
+import { ApiResponse } from '../utils/ApiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import mongoose from 'mongoose'
 import { Subscription } from '../models/subscriptio.models.js'
@@ -30,7 +30,7 @@ const toggleSubscription = asyncHandler(async (req, res) => {
                   });
       
                   return res.status(200).json(
-                        new ApiResponce(200, subscribedChannel, `User subscribed to channel ${channelId}`)
+                        new ApiResponse(200, subscribedChannel, `User subscribed to channel ${channelId}`)
                   );
             } catch (error) {
                   throw new ApiError(500, "Something went wrong, unable to subscribe");
@@ -42,7 +42,7 @@ const toggleSubscription = asyncHandler(async (req, res) => {
             await Subscription.findByIdAndDelete(existingSubscription._id);
 
             return res.status(200).json(
-                  new ApiResponce(200, {}, `User unsubscribed from channel ${channelId}`)
+                  new ApiResponse(200, {}, `User unsubscribed from channel ${channelId}`)
             );
       } catch (error) {
             throw new ApiError(500, "Something went wrong while unsubscribing");
@@ -74,14 +74,14 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
       if (subscriberList.length === 0) {
             return res
                   .status(200)
-                  .json(new ApiResponce(200, [], "No subscribers found for this channel"));
+                  .json(new ApiResponse(200, [], "No subscribers found for this channel"));
       }
 
       const subscribers = subscriberList.map(subscriber => subscriber.subscriber)
 
       return res
             .status(200)
-            .json(new ApiResponce(200, subscribers, "Channel subscribers fetched successfully" ))
+            .json(new ApiResponse(200, subscribers, "Channel subscribers fetched successfully" ))
 })
 
 const getSubscribedChannels = asyncHandler(async (req, res) => {
@@ -109,14 +109,14 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
       if (channelList.length === 0) {
             return res
                   .status(200)
-                  .json(new ApiResponce(200, [], "User has not subscribed to any of channel"));
+                  .json(new ApiResponse(200, [], "User has not subscribed to any of channel"));
       }
 
       const channels = channelList.map(channel => channel.channel)
 
       return res
             .status(200)
-            .json(new ApiResponce(200, channels, "Channel list fetched successfully" ))
+            .json(new ApiResponse(200, channels, "Channel list fetched successfully" ))
 
 })
 

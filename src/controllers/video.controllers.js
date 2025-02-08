@@ -1,5 +1,5 @@
 import { ApiError } from '../utils/ApiError.js'
-import { ApiResponce } from '../utils/ApiResponce.js'
+import { ApiResponse } from '../utils/ApiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { Video } from '../models/video.models.js'
 import { Comment } from '../models/comments.models.js'
@@ -73,7 +73,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
       return res
           .status(200)
-          .json(new ApiResponce(200, videos, "Videos fetched successfully"));
+          .json(new ApiResponse(200, videos, "Videos fetched successfully"));
 });
   
 
@@ -136,7 +136,7 @@ const publishVideo = asyncHandler(async (req, res) => {
                   logger.log("info", `New video is published by ${publishedVideo.owner}, VideoID: ${publishedVideo._id}`)
                   return res
                   .status(200)
-                  .json(new ApiResponce(200, publishedVideo, "Video published successfully"))
+                  .json(new ApiResponse(200, publishedVideo, "Video published successfully"))
 
             } catch (error) {
                   if(video){
@@ -179,7 +179,7 @@ const getVideoById = asyncHandler(async (req, res) => {
       logger.log("info", "Video fetched successfully")
       return res
             .status(200)
-            .json(new ApiResponce(200, video, "Video fetched successfully"))
+            .json(new ApiResponse(200, video, "Video fetched successfully"))
 })
 
 const updateVideo = asyncHandler(async (req, res) => {
@@ -245,7 +245,7 @@ const updateVideo = asyncHandler(async (req, res) => {
                   logger.log("info", "Video updated successfully")
                   return res
                         .status(200)
-                        .json(new ApiResponce(200, updatedVideo, "Video updated successfully"))
+                        .json(new ApiResponse(200, updatedVideo, "Video updated successfully"))
                   
             } catch (error) {
                   
@@ -307,7 +307,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
             logger.log('info', `video ${videoId} deleted successfully`)
             return res
                   .status(200)
-                  .json(new ApiResponce(200, {}, "Video deleted successfully"))
+                  .json(new ApiResponse(200, {}, "Video deleted successfully"))
 
       } catch (error) {
             logger.error("Error while deleting video:", error);
@@ -338,7 +338,7 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
 
       return res
             .status(200)
-            .json(new ApiResponce(200, video, "Publish status toggled successfully"))
+            .json(new ApiResponse(200, video, "Publish status toggled successfully"))
 
 })
 

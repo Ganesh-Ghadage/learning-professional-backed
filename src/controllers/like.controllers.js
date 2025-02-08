@@ -1,6 +1,6 @@
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiError } from '../utils/ApiError.js'
-import { ApiResponce } from '../utils/ApiResponce.js'
+import { ApiResponse } from '../utils/ApiResponse.js'
 import mongoose from 'mongoose'
 import { Like } from '../models/like.models.js'
 import { Video } from '../models/video.models.js'
@@ -37,13 +37,13 @@ const toggleVideoLike = asyncHandler(async(req, res) => {
 
             return res
                   .status(200)
-                  .json(new ApiResponce(200, newLike, "User liked the video"))
+                  .json(new ApiResponse(200, newLike, "User liked the video"))
       }else {
             await Like.deleteOne({ _id: existingLike._id });
 
             return res
                   .status(200)
-                  .json(new ApiResponce(200, {}, "User disliked the video"))
+                  .json(new ApiResponse(200, {}, "User disliked the video"))
       }
 })
 
@@ -77,13 +77,13 @@ const toggleCommentLike = asyncHandler(async(req, res) => {
 
             return res
                   .status(200)
-                  .json(new ApiResponce(200, newLike, "User liked the comment"))
+                  .json(new ApiResponse(200, newLike, "User liked the comment"))
       }else {
             await Like.deleteOne({ _id: existingLike._id });
 
             return res
                   .status(200)
-                  .json(new ApiResponce(200, {}, "User disliked the comment"))
+                  .json(new ApiResponse(200, {}, "User disliked the comment"))
       }
 })
 
@@ -118,13 +118,13 @@ const toggleTweetLike = asyncHandler(async(req, res) => {
 
             return res
                   .status(200)
-                  .json(new ApiResponce(200, newLike, "User liked the tweet"))
+                  .json(new ApiResponse(200, newLike, "User liked the tweet"))
       }else {
             await Like.deleteOne({ _id: existingLike._id });
 
             return res
                   .status(200)
-                  .json(new ApiResponce(200, {}, "User disliked the tweet"))
+                  .json(new ApiResponse(200, {}, "User disliked the tweet"))
       }
 })
 
@@ -141,7 +141,7 @@ const getLikedVideos = asyncHandler(async(req, res) => {
 
       return res
             .status(200)
-            .json(new ApiResponce(200, likedVideos, "Liked video fetched successfully"))
+            .json(new ApiResponse(200, likedVideos, "Liked video fetched successfully"))
 
 })
 
