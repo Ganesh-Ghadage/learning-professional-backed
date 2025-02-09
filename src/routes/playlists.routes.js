@@ -9,10 +9,12 @@ import {
     updatePlaylist,
 } from "../controllers/playlist.controllers.js"
 import {verifyJWT} from "../middlewares/auth.middleware.js"
+import { upload } from '../middlewares/multer.middlewares.js'
 
 const router = Router();
 
 router.use(verifyJWT); 
+router.use(upload.none())
 
 router.route("/").post(createPlaylist)
 

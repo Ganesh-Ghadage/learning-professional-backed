@@ -6,10 +6,12 @@ import {
       getVideoComments, 
       updateComment 
 } from "../controllers/comment.controllers.js";
+import { upload } from '../middlewares/multer.middlewares.js'
 
 const router = Router()
 
 router.use(verifyJWT)
+router.use(upload.none())
 
 router.route('/:videoId')
             .get(getVideoComments)

@@ -33,15 +33,15 @@ router.route('/register').post(
       registerUser
 )
 
-router.route('/login').post(loginUser)
+router.route('/login').post(upload.none(), loginUser)
 
 // secure route
 
 router.route('/logout').post(verifyJWT, logoutUser)
 router.route('/refresh-token').post(verifyJWT, refreshAccessToken)
-router.route('/update-password').patch(verifyJWT, updateUserPassword)
+router.route('/update-password').patch(verifyJWT, upload.none(), updateUserPassword)
 router.route('/user').get(verifyJWT, getCurrentUser)
-router.route('/update-user').patch(verifyJWT, updateUserDetails)
+router.route('/update-user').patch(verifyJWT, upload.none(), updateUserDetails)
 router.route('/update-avatar').patch(verifyJWT, upload.single("avatar"), updateUserAvatar)
 router.route('/update-coverImage').patch(verifyJWT, upload.single("coverImage"), updateUserCoverImage)
 router.route('/channel/:userName').get(verifyJWT, getUserChannelProfile)
