@@ -62,6 +62,7 @@ import tweetRouter from './routes/tweets.routes.js'
 import likeRouter from './routes/likes.routes.js'
 import subscriberRouter from './routes/subscriptions.route.js'
 import playlistRouter from './routes/playlists.routes.js'
+import dashboardRouter from './routes/dashboard.routes.js'
 
 // Routes
 app.use('/api/v1/healthcheck', healthcheckRouter)
@@ -72,5 +73,6 @@ app.use('/api/v1/tweets', tweetRouter)
 app.use('/api/v1/likes', likeRouter)
 app.use('/api/v1/subscriptions', subscriberRouter)
 app.use('/api/v1/playlist', playlistRouter)
+app.use('/api/v1/dashboard', dashboardRouter)
 
 export { app }
