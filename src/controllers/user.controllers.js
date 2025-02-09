@@ -9,26 +9,19 @@ import jwt from 'jsonwebtoken'
 import { options } from '../constants.js'
 
 const generateAccessAndRefreshToken = async (userId) => {
-      //try {
-            const user = await User.findById(userId)   
-      
-            if(!user){
-                  throw new ApiError(407, "User Id does not exists")
-            }
-      
-            const accessToken = user.generateAccessToken()
-            const refreshToken = user.generateRefreshToken()
+      const user = await User.findById(userId)   
 
-            console.log(accessToken)
-            console.log(refreshToken)
+      if(!user){
+            throw new ApiError(407, "User Id does not exists")
+      }
 
-            user.refreshToken = refreshToken
-            await user.save({validateBeforeSave: false})
-      
-            return {accessToken, refreshToken}
-      // } catch (error) {
-      //       throw new ApiError(400, "Something went wrong while generating tokens", error)
-      // }
+      const accessToken = user.generateAccessToken()
+      const refreshToken = user.generateRefreshToken()
+
+      user.refreshToken = refreshToken
+      await user.save({validateBeforeSave: false})
+
+      return {accessToken, refreshToken}
 }
 
 const registerUser = asyncHandler(async (req, res) => {
